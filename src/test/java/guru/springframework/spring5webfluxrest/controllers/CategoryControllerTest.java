@@ -8,14 +8,14 @@ import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
-
-import static org.junit.Assert.*;
+import reactor.core.publisher.Mono;
 
 public class CategoryControllerTest {
 
     WebTestClient webTestClient;
     CategoryRepository categoryRepository;
     CategoryController categoryController;
+
 
     @Before
     public void setUp() throws Exception {
@@ -26,20 +26,12 @@ public class CategoryControllerTest {
 
     @Test
     public void list() {
-        Category categoryCat1 = new Category();
-        categoryCat1.setId("1");
-        categoryCat1.setDescription("Cat1");
-
-        Category categoryCat2 = new Category();
-        categoryCat2.setId("2");
-        categoryCat2.setDescription("Cat2");
-
         BDDMockito.given(categoryRepository.findAll())
-                    .willReturn(Flux.just(categoryCat1,
-                            categoryCat2));
+                .willReturn(Flux.just(Category.builder().description("Cat1").build(),
+                        Category.builder().description("Cat2").build()));
 
         webTestClient.get()
-                .uri("api/v1/categories")
+                .uri("/api/v1/categories/")
                 .exchange()
                 .expectBodyList(Category.class)
                 .hasSize(2);
@@ -47,5 +39,13 @@ public class CategoryControllerTest {
 
     @Test
     public void getById() {
+        BDDMockito.given(categoryRepository.findById("someid"))
+                .willReturn(Mono.just(Category.builder().description("Cat").build()));
+
+        webTestClient.get()
+                .uri("/api/v1/categories/someid")
+                .exchange()
+                .expectBody(Category.class);
+
     }
 }
